@@ -29,7 +29,7 @@ def solve_image():
     if "file" not in request.files:
         return jsonify({"error": "Resim bulunamadı"}), 400
 
-    file = request.files["file"]
+    file = request.files["filename"]
     img_bytes = file.read()
 
     model = genai.GenerativeModel("gemini-1.5-flash")
