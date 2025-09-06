@@ -26,19 +26,19 @@ def solve_text():
 
 @app.route("/solve_image", methods=["POST"])
 def solve_image():
-    if "file" not in request.files:
-        return jsonify({"error": "Resim bulunamadı"}), 400
+    # Hem "file" hem de "filename" için kontrol yap
+    if "file" in request.files:
+        file = request.files["file"]
+    elif "filename" in request.files:
+        file = request.files["filename"]
+    else:
+        return jsonify({"error": "No file uploaded"}), 400
 
-    file = request.files["filename"]
-    img_bytes = file.read()
+    # Dosyayı işleme devam et
+    content = file.read()
+    # buradan sonra Gemini’ye gönderme kodun devam edecek...
+    return jsonify({"answer": "Dosya alındı, boyut: {} byte".format(len(content))})
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content([
-        "Bu görseldeki soruyu çöz ve adım adım açıkla.",
-        {"mime_type": "image/jpeg", "data": img_bytes}
-    ])
-
-    return jsonify({"answer": response.text})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
