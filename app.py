@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import google.generativeai as genai
 import os
 
@@ -13,32 +13,26 @@ def home():
 
 @app.route("/solve_text", methods=["POST"])
 def solve_text():
-    data = request.get_json()
-    question = data.get("question", "")
+    question = request.data.decode("utf-8").strip()
 
     if not question:
-        return jsonify({"error": "Soru boş olamaz"}), 400
+        return "⚠️ Soru boş olamaz", 400
 
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(question)
 
-    return jsonify({"answer": response.text})
+    return response.text  # ✅ sadece düz metin dönüyor
 
 @app.route("/solve_image", methods=["POST"])
 def solve_image():
-    # Hem "file" hem de "filename" için kontrol yap
-    if "file" in request.files:
-        file = request.files["file"]
-    elif "filename" in request.files:
-        file = request.files["filename"]
-    else:
-        return jsonify({"error": "No file uploaded"}), 400
+    if "file" not in request.files:
+        return "⚠️ Fotoğraf gönderilmedi", 400
 
-    # Dosyayı işleme devam et
+    file = request.files["file"]
     content = file.read()
-    # buradan sonra Gemini’ye gönderme kodun devam edecek...
-    return jsonify({"answer": "Dosya alındı, boyut: {} byte".format(len(content))})
 
+    return f"📷 Fotoğraf alındı, boyut: {len(content)} byte"  # ✅ düz metin
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))  # Render'ın verdiği portu kullan
+    app.run(host="0.0.0.0", port=port)
